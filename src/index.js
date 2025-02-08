@@ -1,29 +1,46 @@
-import { drawRyu, updateRyu } from "./Ryu.js"; 
-import { drawBackground } from "./Stage.js";
-import { drawDha, updateDha } from "./dha.js";
+import { Ryu } from "./entities/fighters/Ryu.js"; 
+import { Stage } from "./entities/Stage.js";
+import { Dha } from "./entities/fighters/dha.js";
+import { FpsCounter } from "./entities/FpsCounter.js";
 
 const GameViewport = {
     WIDTH: 384,
     HEIGHT: 224,
 };
 
-window.onload = function() {
+window.addEventListener('load', function() {
     const canvasEl = document.querySelector('canvas');
     const context = canvasEl.getContext('2d');
 
     canvasEl.width = GameViewport.WIDTH;
     canvasEl.height = GameViewport.HEIGHT;
 
-    function frame() { 
-        updateRyu(context);
-        updateDha(context);
-        
-        drawBackground(context);
-        drawRyu(context);
-        drawDha(context);
+    const entities = [
+      new Stage(),
+      new Ryu(80, 110, 150),
+      new Dha(80,110,-150),
+      new FpsCounter(),
+    ]
 
+    let previousTime = 0;
+    let secondsPassed = 0;
+
+    function frame(time) { 
         window.requestAnimationFrame(frame);
+
+        secondsPassed = (time - previousTime) / 1000; 
+        previousTime = time;
+
+       for (const entitity of entities) {
+        entitity.update(secondsPassed,context);
+       }
+       
+       for (const entitity of entities) {
+        entitity.draw(context); 
+       }
+
+        console.log(time);
     }
 
     window.requestAnimationFrame(frame);
-}
+});
