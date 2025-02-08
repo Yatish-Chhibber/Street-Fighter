@@ -17,7 +17,7 @@ window.addEventListener('load', function() {
 
     const entities = [
       new Stage(),
-      new Ryu(80, 110, 100),
+      new Ryu(80, 110, 150),
       new Dha(80,110,-150),
       new FpsCounter(),
     ]
