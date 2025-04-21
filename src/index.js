@@ -2,37 +2,33 @@ import { Ryu } from "./entities/fighters/Ryu.js";
 import { Stage } from "./entities/Stage.js";
 import { Dha } from "./entities/fighters/dha.js";
 import { FpsCounter } from "./entities/FpsCounter.js";
-
-const GameViewport = {
-    WIDTH: 384,
-    HEIGHT: 224,
-};
+import { STAGE_FLOOR } from "./constants/stage.js";
+import { FighterDirection } from "./constants/fighter.js";
 
 window.addEventListener('load', function() {
     const canvasEl = document.querySelector('canvas');
     const context = canvasEl.getContext('2d');
 
-    canvasEl.width = GameViewport.WIDTH;
-    canvasEl.height = GameViewport.HEIGHT;
+    context.imageSmoothingEnabled = false;
 
     const entities = [
       new Stage(),
-      new Ryu(80, 110, 150),
-      new Dha(80,110,-150),
+      new Ryu(104, STAGE_FLOOR, FighterDirection.LEFT),
+      new Dha(280,STAGE_FLOOR, FighterDirection.RIGHT),
       new FpsCounter(),
     ]
-
-    let previousTime = 0;
-    let secondsPassed = 0;
-
+    let frametime = {
+        previous: 0,
+        secondsPassed: 0,
+    };
     function frame(time) { 
         window.requestAnimationFrame(frame);
-
-        secondsPassed = (time - previousTime) / 1000; 
-        previousTime = time;
-
+        frametime = {
+        secondsPassed: (time - frametime.previous) / 1000, 
+        previous: time,
+        }
        for (const entitity of entities) {
-        entitity.update(secondsPassed,context);
+        entitity.update(frametime,context);
        }
        
        for (const entitity of entities) {
