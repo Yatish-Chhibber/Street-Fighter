@@ -7,10 +7,9 @@ export class Fighter {
         this.frames = new Map();
         this.position = { x, y };
         this.direction = direction;
-        this.velocity = 150 * direction;
+        this.velocity = 0;
         this.animationFrame = 0;
         this.animationTimer = 0;
-        this.currentState = FighterState.WALK_FORWARD;
         this.animations = {};
 
         this.states = {
@@ -23,18 +22,18 @@ export class Fighter {
                 update: this.handleWalkBackwardsState.bind(this),
             },
         }
+
+        this.changeState(FighterState.WALK_BACKWARD);
     }
 
     changeState(newState) { 
-        //this.velocity * this.direction < 0 ? FighterState.WALK_BACKWARD : FighterState.WALK_FORWARD;
-
         this.currentState = newState;
         this.animationFrame = 0;
 
         this.states[this.currentState].init();
     }
     handleWalkForwardInit() {
-        this.velocity = 150;
+        this.velocity = 150 * this.direction;
     }
 
     handleWalkForwardState() {
@@ -42,7 +41,7 @@ export class Fighter {
     }
 
     handleWalkBackwardsInit() {
-        this.velocity = -150;
+        this.velocity = -150 * this.direction;
     }
 
     handleWalkBackwardsState() {
