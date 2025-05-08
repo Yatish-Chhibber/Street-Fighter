@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Street Fighter Try Hard</title>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#317EFB" />
     <style>
         html,
         body {
-            padding : 0;
-            margin : 0;
+            padding: 0;
+            margin: 0;
             height: 100%;
         }
-        
+
         body {
             display: flex;
             flex-direction: column;
             --form-height: 6rem;
             --form-content-size: 2rem;
         }
-        
+
         body,
         canvas {
             background-color: black;
@@ -46,7 +49,7 @@
         }
 
         form * {
-            font-size: var(--form-content-size);   
+            font-size: var(--form-content-size);
         }
 
         input[type="checkbox"] {
@@ -64,7 +67,28 @@
         }
     </style>
     <script type="module" src="./src/index.js "></script>
+
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(() => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            console.log('Install prompt triggered');
+            // Save the event to show install later manually, if needed
+            window.deferredPrompt = e;
+        });
+    </script>
+
+
 </head>
+
 <body>
     <form>
         <div>
@@ -80,11 +104,12 @@
     </form>
 
     <main>
-        <canvas width = "384" height="224"></canvas>
+        <canvas width="384" height="224"></canvas>
     </main>
 
-    <img src = './images/ryu.png' alt = "ryu"/>
-    <img src = './Images/background.png' alt="background" />
-    <img src = './images/dha.png' alt = "dha"/>
+    <img src='./images/ryu.png' alt="ryu" />
+    <img src='./Images/background.png' alt="background" />
+    <img src='./images/dha.png' alt="dha" />
 </body>
+
 </html>
