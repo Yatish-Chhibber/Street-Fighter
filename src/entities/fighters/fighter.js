@@ -1,4 +1,4 @@
-import { FighterDirection } from "../../constants/fighter.js";
+import { FighterDirection, FighterState } from "../../constants/fighter.js";
 
 export class Fighter {
     constructor(name, x, y, direction) {
@@ -10,33 +10,72 @@ export class Fighter {
         this.velocity = 150 * direction;
         this.animationFrame = 0;
         this.animationTimer = 0;
-        this.state = this.changeState();
+        this.currentState = FighterState.WALK_FORWARD;
         this.animations = {};
+
+        this.states = {
+            [FighterState.WALK_FORWARD]: {
+                init: this.handleWalkForwardInit.bind(this),
+                update: this.handleWalkForwardState.bind(this),
+            },
+            [FighterState.WALK_BACKWARD]: {
+                init: this.handleWalkBackwardsInit.bind(this),
+                update: this.handleWalkBackwardsState.bind(this),
+            },
+        }
     }
 
-    changeState = () => this.velocity * this.direction < 0 ? 'walkBackwards' : 'walkForwards';
+    changeState(newState) { 
+        //this.velocity * this.direction < 0 ? FighterState.WALK_BACKWARD : FighterState.WALK_FORWARD;
+
+        this.currentState = newState;
+        this.animationFrame = 0;
+
+        this.states[this.currentState].init();
+    }
+    handleWalkForwardInit() {
+        this.velocity = 150;
+    }
+
+    handleWalkForwardState() {
+
+    }
+
+    handleWalkBackwardsInit() {
+        this.velocity = -150;
+    }
+
+    handleWalkBackwardsState() {
+
+    }
+
+    updateStageConstraints(context) {
+        const WIDTH = 32;
+
+        if(this.position.x > context.canvas.width - WIDTH) {
+            this.position.x = context.canvas.width - WIDTH;
+        }
+
+        if(this.position.x < WIDTH) {           
+            this.position.x = WIDTH;
+        }
+    }
 
     update(time, context) {
-        const [[, , width]] = this.frames.get(this.animations[this.state][this.animationFrame]);
-
         if(time.previous > this.animationTimer + 60 ){
         this.animationTimer = time.previous;
+
         this.animationFrame++;
         if (this.animationFrame > 5) this.animationFrame = 1;
         }
 
         this.position.x += this.velocity * time.secondsPassed;
 
-        if(this.position.x > context.canvas.width - width / 2) {
-            this.velocity = -150;
-            this.state = this.changeState();
-        }
 
-        if(this.position.x < width / 2){
-            this.velocity = 150;
-            this.state = this.changeState();
-        }
+        this.states[this.currentState].update(time, context);
+        this.updateStageConstraints(context);
     }
+
     drawDebug(context) {
         context.lineWidth = 1;
 
@@ -53,7 +92,7 @@ export class Fighter {
         const [
             [x, y, width, height],
             [originX,originY],
-        ] = this.frames.get(this.animations[this.state][this.animationFrame]);
+        ] = this.frames.get(this.animations[this.currentState][this.animationFrame]);
 
         context.scale(this.direction, 1);
         context.drawImage(
