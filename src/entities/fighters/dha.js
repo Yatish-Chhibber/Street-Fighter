@@ -2,8 +2,8 @@ import { FighterState } from "../../constants/fighter.js";
 import { Fighter } from "./fighter.js";
 
 export class Dha extends Fighter {
-    constructor(x,y,velocity) {
-        super('Dha',x,y,velocity);
+    constructor(x,y,direction, playerId) {
+        super('Dha',x,y,direction, playerId);
         this.image = document.querySelector('img[alt="dha"]');
 
         this.frames= new Map([
@@ -46,6 +46,16 @@ export class Dha extends Fighter {
              ['crouch-1', [[26, 1162, 64, 88], [27, 81]]], 
              ['crouch-2', [[114, 1174, 57, 76], [25, 66]]], 
              ['crouch-3', [[205, 1186, 60, 64], [25, 58]]], 
+
+             //Idle Turn
+             ['idle-turn-1', [[37, 1492, 62, 95], [29, 92]]], 
+             ['idle-turn-2', [[131, 1490, 66, 95], [30, 94]]], 
+             ['idle-turn-3', [[228, 1488, 73, 95], [27, 90]]], 
+
+             //Crouch Turn
+             ['crouch-turn-1', [[344, 1512, 58, 71], [26, 58]]], 
+             ['crouch-turn-2', [[436, 1510, 59, 71], [27, 58]]], 
+             ['crouch-turn-3', [[526, 1512, 57, 67], [29, 58]]], 
         ]);
 
         this.animations = {
@@ -75,10 +85,16 @@ export class Dha extends Fighter {
             ],
             [FighterState.CROUCH]: [['crouch-3',0]],
             [FighterState.CROUCH_DOWN]: [
-                ['crouch-1',30], ['crouch-2',30], ['crouch-3',30], ['crouch-3',-2]
+                ['crouch-1',80], ['crouch-2',80], ['crouch-3',-2]
         ],
             [FighterState.CROUCH_UP]: [
-                ['crouch-3',30], ['crouch-2',30], ['crouch-1',30], ['crouch-1',-2]
+                ['crouch-3',80], ['crouch-2',80], ['crouch-1',-2]
+        ],
+            [FighterState.IDLE_TURN]: [
+                ['idle-turn-3',83], ['idle-turn-2',83], ['idle-turn-1', -2],
+        ],
+            [FighterState.CROUCH_TURN]: [
+                ['crouch-turn-3',83], ['crouch-turn-2',83], ['crouch-turn-1', -2],
         ],
         };
 

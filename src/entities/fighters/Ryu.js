@@ -2,8 +2,8 @@ import { FighterState } from "../../constants/fighter.js";
 import { Fighter } from "./fighter.js";
 
 export class Ryu extends Fighter {
-    constructor(x, y, velocity) {
-        super('Ryu', x, y, velocity);
+    constructor(x, y, direction, playerId) {
+        super('Ryu', x, y, direction, playerId);
         
         this.image = document.querySelector('img[alt="ryu"]');
 
@@ -51,6 +51,16 @@ export class Ryu extends Fighter {
             ['crouch-1', [[551, 21, 53, 83], [27, 81]]], 
             ['crouch-2', [[611, 36, 57, 69], [25, 66]]], 
             ['crouch-3', [[679, 44, 61, 61], [25, 58]]], 
+
+            //Idle Turn
+            ['idle-turn-1', [[348, 8, 54, 95], [29, 92]]], 
+            ['idle-turn-2', [[414, 6, 58, 97], [30, 95]]], 
+            ['idle-turn-3', [[486, 10, 54, 94], [27, 90]]], 
+
+            //Crouch Turn
+            ['crouch-turn-1', [[751, 46, 53, 61], [26, 58]]], 
+            ['crouch-turn-2', [[816, 46, 52, 61], [27, 58]]], 
+            ['crouch-turn-3', [[878, 46, 53, 61], [29, 58]]], 
         ]);
 
          this.animations = {
@@ -85,6 +95,12 @@ export class Ryu extends Fighter {
             [FighterState.CROUCH_UP]: [
                 ['crouch-3',80], ['crouch-2',80], ['crouch-1',-2]
             ],
+            [FighterState.IDLE_TURN]: [
+                ['idle-turn-3',83], ['idle-turn-2',83], ['idle-turn-1', -2],
+            ],
+            [FighterState.CROUCH_TURN]: [
+                ['crouch-turn-3',83], ['crouch-turn-2',83], ['crouch-turn-1', -2],
+            ],    
         };
 
         this.initialVelocity = {
