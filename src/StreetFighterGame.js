@@ -2,27 +2,32 @@ import { Ryu } from "./entities/fighters/Ryu.js";
 import { Stage } from "./entities/Stage.js";
 import { Dha } from "./entities/fighters/dha.js";
 import { FpsCounter } from "./entities/FpsCounter.js";
-import { STAGE_FLOOR } from "./constants/stage.js";
-import { FighterDirection} from "./constants/fighter.js";
+import { STAGE_FLOOR, STAGE_PADDING, STAGE_MID_POINT } from "./constants/stage.js";
+import { FIGHTER_START_DISTANCE, FighterDirection} from "./constants/fighter.js";
 import { registerKeyboardEvents } from "./InputHandler.js";
 import { Shadow } from "./entities/fighters/Shadow.js";
+import { StatusBar } from "./entities/overlays/StatusBar.js";
+import { Camera } from "./Camera.js";
 
 export class StreetFighterGame {
     constructor() {
         this.context = this.getContext();
         this.fighters = [
-            new Ryu(104, STAGE_FLOOR, FighterDirection.LEFT, 0),
-            new Dha(280,STAGE_FLOOR, FighterDirection.RIGHT, 1),
+            new Ryu(0),
+            new Dha(1),
         ];
 
         this.fighters[0].opponent = this.fighters[1];
         this.fighters[1].opponent = this.fighters[0];
+
+        this.camera = new Camera(STAGE_MID_POINT + STAGE_PADDING - (this.context.canvas.width / 2), 16, this.fighters);
     
         this.entities = [
           new Stage(),
           ...this.fighters.map(fighter => new Shadow(fighter)),
           ...this.fighters,
           new FpsCounter(),
+          new StatusBar(this.fighters),
         ]
         this.frametime = {
             previous: 0,
@@ -39,14 +44,16 @@ export class StreetFighterGame {
     }
 
     update () {
+        this.camera.update(this.frametime, this.context);
+
         for (const entitity of this.entities) {
-            entitity.update(this.frametime,this.context);
+            entitity.update(this.frametime,this.context, this.camera);
         }
     }
 
     draw () {
         for (const entitity of this.entities) {
-            entitity.draw(this.context); 
+            entitity.draw(this.context, this.camera); 
         }
     }
 

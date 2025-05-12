@@ -2,8 +2,8 @@ import { Fighter } from "./fighter.js";
 import { FighterState, FrameDelay, PushBox } from "../../constants/fighter.js";
 
 export class Dha extends Fighter {
-    constructor(x,y,direction, playerId) {
-        super('Dha',x,y,direction, playerId);
+    constructor(playerId) {
+        super('Dha', playerId);
         this.image = document.querySelector('img[alt="dha"]');
 
         this.frames= new Map([
