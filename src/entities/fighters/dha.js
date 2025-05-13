@@ -56,6 +56,21 @@ export class Dha extends Fighter {
              ['crouch-turn-1', [[[344, 1512, 58, 71], [26, 58]], PushBox.CROUCH]], 
              ['crouch-turn-2', [[[436, 1510, 59, 71], [27, 58]], PushBox.CROUCH]], 
              ['crouch-turn-3', [[[526, 1512, 57, 67], [29, 58]], PushBox.CROUCH]], 
+
+             //light Punch
+             ['light-punch-1', [[[24, 1677, 91, 87], [32, 88]], PushBox.IDLE]],
+             ['light-punch-2', [[[147, 1680, 84, 84], [32, 88]], PushBox.IDLE]],
+             ['light-punch-3', [[[258, 1683, 136, 81], [32, 88]], PushBox.IDLE]],
+
+             //Medium Punch
+             ['med-punch-1', [[[20, 2162, 75, 100], [28, 91]], PushBox.IDLE]],
+             ['med-punch-2', [[[128, 2184, 87, 78], [29, 92]], PushBox.IDLE]],
+             ['med-punch-3', [[[247, 2215, 151, 47], [24, 92]], PushBox.IDLE]],
+             ['med-punch-4', [[[425, 2215, 215, 47], [24, 92]], PushBox.IDLE]],
+
+             //Heavy Punch
+             ['heavy-punch-1', [[[256, 2654, 149, 47], [24, 92]], PushBox.IDLE]],
+             ['heavy-punch-2', [[[432, 2654, 248, 47], [24, 92]], PushBox.IDLE]],
         ]);
 
         this.animations = {
@@ -86,16 +101,27 @@ export class Dha extends Fighter {
             [FighterState.CROUCH]: [['crouch-3',FrameDelay.FREEZE]],
             [FighterState.CROUCH_DOWN]: [
                 ['crouch-1',80], ['crouch-2',80], ['crouch-3',FrameDelay.TRANSITION]
-        ],
+            ],
             [FighterState.CROUCH_UP]: [
                 ['crouch-3',80], ['crouch-2',80], ['crouch-1',FrameDelay.TRANSITION]
-        ],
+            ],
             [FighterState.IDLE_TURN]: [
                 ['idle-turn-3',83], ['idle-turn-2',83], ['idle-turn-1', FrameDelay.TRANSITION],
-        ],
+            ],
             [FighterState.CROUCH_TURN]: [
                 ['crouch-turn-3',83], ['crouch-turn-2',83], ['crouch-turn-1', FrameDelay.TRANSITION],
-        ],
+            ],
+            [FighterState.LIGHT_PUNCH]: [
+                ['light-punch-1', 33], ['light-punch-2', 66], ['light-punch-3', 66], ['light-punch-2', 66], ['light-punch-1', 66], ['light-punch-1', FrameDelay.TRANSITION],
+            ],
+            [FighterState.MEDIUM_PUNCH]: [
+                ['med-punch-1', 16], ['med-punch-2', 33], ['med-punch-3', 66], ['med-punch-4', 66], ['med-punch-3', 50],['med-punch-2', 50], 
+                ['med-punch-1', 50], ['med-punch-1', FrameDelay.TRANSITION],
+            ],
+              [FighterState.HEAVY_PUNCH]: [
+                ['med-punch-1', 50], ['med-punch-2', 33], ['heavy-punch-1', 100], ['heavy-punch-2', 130], ['med-punch-2', 166], 
+                ['med-punch-1', 199], ['med-punch-1', FrameDelay.TRANSITION],
+            ],
         };
 
         this.initialVelocity = {

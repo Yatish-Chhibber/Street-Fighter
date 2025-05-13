@@ -1,5 +1,5 @@
 import { Ryu } from "./entities/fighters/Ryu.js"; 
-import { Stage } from "./entities/Stage.js";
+import { Stage } from "./entities/stage/Stage.js";
 import { Dha } from "./entities/fighters/dha.js";
 import { FpsCounter } from "./entities/FpsCounter.js";
 import { STAGE_FLOOR, STAGE_PADDING, STAGE_MID_POINT } from "./constants/stage.js";
@@ -17,13 +17,14 @@ export class StreetFighterGame {
             new Dha(1),
         ];
 
+        this.stage = new Stage();
+
         this.fighters[0].opponent = this.fighters[1];
         this.fighters[1].opponent = this.fighters[0];
 
         this.camera = new Camera(STAGE_MID_POINT + STAGE_PADDING - (this.context.canvas.width / 2), 16, this.fighters);
     
         this.entities = [
-          new Stage(),
           ...this.fighters.map(fighter => new Shadow(fighter)),
           ...this.fighters,
           new FpsCounter(),
@@ -45,6 +46,7 @@ export class StreetFighterGame {
 
     update () {
         this.camera.update(this.frametime, this.context);
+        this.stage.update(this.frametime, this.context);
 
         for (const entitity of this.entities) {
             entitity.update(this.frametime,this.context, this.camera);
@@ -52,9 +54,11 @@ export class StreetFighterGame {
     }
 
     draw () {
+        this.stage.drawBackground(this.context, this.camera);
         for (const entitity of this.entities) {
             entitity.draw(this.context, this.camera); 
         }
+        this.stage.drawForeground(this.context, this.camera);
     }
 
     frame(time) { 

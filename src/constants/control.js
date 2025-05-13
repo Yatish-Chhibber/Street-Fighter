@@ -3,6 +3,12 @@ export const Control = {
     RIGHT: 'right',
     UP: 'up',
     DOWN: 'down',
+    LIGHT_PUNCH: 'lightPunch',
+    MEDIUM_PUNCH: 'meduimPunch',
+    HEAVY_PUNCH: 'heavyPunch',
+    LIGHT_KICK: 'lightKick',
+    MEDIUM_KICK: 'meduimKick',
+    HEAVY_KICK: 'heavyKick',
 };
 
 export const controls = [
@@ -12,6 +18,9 @@ export const controls = [
             [Control.RIGHT]: 'ArrowRight',
             [Control.UP]: 'ArrowUp',
             [Control.DOWN]: 'ArrowDown',
+            [Control.LIGHT_PUNCH]: 'KeyZ',
+            [Control.MEDIUM_PUNCH]: 'KeyX',
+            [Control.HEAVY_PUNCH]: 'KeyC',
         }
     },
     {
@@ -20,6 +29,9 @@ export const controls = [
             [Control.RIGHT]: 'KeyD',
             [Control.UP]: 'KeyW',
             [Control.DOWN]: 'KeyS',
+            [Control.LIGHT_PUNCH]: 'KeyJ',
+            [Control.MEDIUM_PUNCH]: 'KeyK',
+            [Control.HEAVY_PUNCH]: 'KeyL',
         },
     }
 ];
