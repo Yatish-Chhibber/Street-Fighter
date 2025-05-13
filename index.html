@@ -34,6 +34,219 @@
         img {
             display: none;
         }
+
+        .start-screen {
+            height: 100%;
+            width: 100%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .start-screen button {
+            display: flex;
+            align-items: center;
+            font-family: inherit;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 17px;
+            padding: 0.8em 1.3em 0.8em 0.9em;
+            color: white;
+            background: #000;
+            background: linear-gradient(to right, #000, #000, #000);
+            border: none;
+            letter-spacing: 0.05em;
+            border-radius: 16px;
+        }
+
+.btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30rem;
+  overflow: hidden;
+  height: 3rem;
+  background-size: 300% 300%;
+  cursor: pointer;
+  backdrop-filter: blur(1rem);
+  border-radius: 5rem;
+  transition: 0.5s;
+  animation: gradient_301 5s ease infinite;
+  border: double 4px transparent;
+  background-image: linear-gradient(#000, #000),
+    linear-gradient(
+      137.48deg,
+      #000 10%,
+      #000 45%,
+      #000 67%,
+      #000 87%
+    );
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+}
+
+#container-stars {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transition: 0.5s;
+  backdrop-filter: blur(1rem);
+  border-radius: 5rem;
+}
+
+strong {
+  z-index: 2;
+  font-family: "Avalors Personal Use";
+  font-size: 23px;
+  letter-spacing: 5px;
+  color: #ffffff;
+  text-shadow: 0 0 4px white;
+}
+
+#glow {
+  position: absolute;
+  display: flex;
+  width: 12rem;
+}
+
+.circle {
+  width: 100%;
+  height: 30px;
+  filter: blur(2rem);
+  animation: pulse_3011 4s infinite;
+  z-index: -1;
+}
+
+.circle:nth-of-type(1) {
+  background: black (254, 83, 186, 0.636);
+}
+
+.circle:nth-of-type(2) {
+  background: black (142, 81, 234, 0.704);
+}
+
+.btn:hover #container-stars {
+  z-index: 1;
+  background-color: #000;
+}
+
+.btn:hover {
+  transform: scale(1.1);
+}
+
+.btn:active {
+  border: double 4px #000;
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  animation: none;
+}
+
+.btn:active .circle {
+  background: #000;
+}
+
+#stars {
+  position: relative;
+  background: transparent;
+  width: 200rem;
+  height: 200rem;
+}
+
+#stars::after {
+  content: "";
+  position: absolute;
+  top: -10rem;
+  left: -100rem;
+  width: 100%;
+  height: 100%;
+  animation: animStarRotate 90s linear infinite;
+}
+
+#stars::after {
+  background-image: radial-gradient(#ffffff 1px, transparent 1%);
+  background-size: 50px 50px;
+}
+
+#stars::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -50%;
+  width: 170%;
+  height: 500%;
+  animation: animStar 60s linear infinite;
+}
+
+#stars::before {
+  background-image: radial-gradient(#ffffff 1px, transparent 1%);
+  background-size: 50px 50px;
+  opacity: 0.5;
+}
+
+@keyframes animStar {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-135rem);
+  }
+}
+
+@keyframes animStarRotate {
+  from {
+    transform: rotate(360deg);
+  }
+
+  to {
+    transform: rotate(0);
+  }
+}
+
+@keyframes gradient_301 {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulse_3011 {
+  0% {
+    transform: scale(0.75);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+  }
+
+  100% {
+    transform: scale(0.75);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  }
+}
+
+
+        .menuBg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
     </style>
     <script type="module" src="./src/index.js "></script>
 
@@ -57,13 +270,42 @@
 
 
 </head>
-
+ 
 <body>
-    <canvas width="384" height="224"></canvas>
+    <div class="start-screen">
+        <video class="menuBg" width="640" height="360" autoplay muted playsinline loop>
+  <source src="./public/Images/menu.mp4" type="video/mp4" />
+  Your browser does not support the video tag.
+</video>
+        <button id= "start" type="button" class="btn">
+  <strong>Start Game</strong>
+  <div id="container-stars">
+    <div id="stars"></div>
+  </div>
+
+  <div id="glow">
+    <div class="circle"></div>
+    <div class="circle"></div>
+  </div>
+</button>
+
+    </div>
+    <canvas style="display: none;" id="gameWrapper" width="384" height="224"></canvas>
     <img src='./public/Images/ken-stage.png' alt="stage" />
     <img src='./public/Images/misc.png' alt="misc" />
     <img src='./public/Images/shadow.png' alt="shadow" />
     <img src='./public/Images/ryu.png' alt="ryu" />
     <img src='./public/Images/dha.png' alt="dha" />
 </body>
+
+<script>
+    const startButton = document.getElementById('start');
+    const gameWrapper = document.getElementById('gameWrapper');
+    const startScreen = document.querySelector(".start-screen");
+    startButton.addEventListener('click', () => {
+        startScreen.style.display = 'none'; // Hide the start screen
+        gameWrapper.style.display = 'block'; // Show the game canvas
+    });
+
+</script>
 </html>
