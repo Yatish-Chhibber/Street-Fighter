@@ -70,7 +70,7 @@ export class Dha extends Fighter {
 
              //Heavy Punch
              ['heavy-punch-1', [[[256, 2654, 149, 47], [24, 92]], PushBox.IDLE, HurtBox.IDLE]],
-             ['heavy-punch-2', [[[432, 2654, 248, 47], [24, 92]], PushBox.IDLE, HurtBox.PUNCH, [145, -90, 76, 30]]],
+             ['heavy-punch-2', [[[432, 2654, 248, 47], [24, 92]], PushBox.IDLE, HurtBox.PUNCH, [145, -95, 76, 30]]],
 
              //Light/medium Kick
              ['light-kick-1', [[[30, 3023, 59, 93], [46, 93]], PushBox.IDLE, [[-33, -96, 30, 18], [-41, -79, 42, 38], [-32, -52, 44, 50]]]],
