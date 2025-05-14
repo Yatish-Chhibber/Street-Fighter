@@ -1,4 +1,5 @@
-import { Control, controls } from "./constants/control.js";
+import { Control } from "./constants/control.js";
+import { controls } from "./config/controls.js";
 import { FighterDirection } from "./constants/fighter.js";
 
 const heldKeys = new Set();
@@ -54,3 +55,7 @@ export const isBackward = (id, direction) => direction == FighterDirection.LEFT 
 export const isLightPunch = (id) => isControlPressed(id, Control.LIGHT_PUNCH);
 export const isMediumPunch = (id) => isControlPressed(id, Control.MEDIUM_PUNCH);
 export const isHeavyPunch = (id) => isControlPressed(id, Control.HEAVY_PUNCH);
+
+export const isLightKick = (id) => isControlPressed(id, Control.LIGHT_KICK);
+export const isMediumKick = (id) => isControlPressed(id, Control.MEDIUM_KICK);
+export const isHeavyKick = (id) => isControlPressed(id, Control.HEAVY_KICK);

@@ -1,8 +1,7 @@
-import { Control } from "../../constants/control.js";
-import { FIGHTER_START_DISTANCE, FighterDirection, FighterState, FrameDelay, PUSH_FRICTION} from "../../constants/fighter.js";
+import { FIGHTER_START_DISTANCE, FighterDirection, FighterState, FrameDelay, PUSH_FRICTION, FighterAttackType} from "../../constants/fighter.js";
 import { STAGE_FLOOR, STAGE_MID_POINT, STAGE_PADDING } from "../../constants/stage.js";
 import * as control from "../../InputHandler.js";
-import { rectsOverlap } from "../../utils/Collisions.js";
+import { boxOverlap, getActualBoxDimensions, rectsOverlap } from "../../utils/collisions.js";
 import { isControlDown } from "../../InputHandler.js";
 
 export class Fighter {
@@ -27,7 +26,11 @@ export class Fighter {
 
         this.opponent;
 
-        this.pushBox = { x: 0, y: 0, width: 0, height: 0 };
+        this.boxes = {
+            push: { x: 0, y: 0, width: 0, height: 0 },
+            hurt: [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            hit: { x: 0, y: 0, width: 0, height: 0 },
+        };
 
         this.states = {
             [FighterState.IDLE]: {
@@ -37,7 +40,8 @@ export class Fighter {
                     FighterState.IDLE, FighterState.WALK_FORWARD, FighterState.WALK_BACKWARD,
                     FighterState.JUMP_UP, FighterState.JUMP_FORWARD, FighterState.JUMP_BACKWARD,
                     FighterState.CROUCH_UP, FighterState.IDLE_TURN, FighterState.LIGHT_PUNCH,
-                    FighterState.MEDIUM_PUNCH, FighterState.HEAVY_PUNCH,
+                    FighterState.MEDIUM_PUNCH, FighterState.HEAVY_PUNCH, FighterState.LIGHT_KICK,
+                    FighterState.MEDIUM_KICK, FighterState.HEAVY_KICK,
                 ],
             },
             [FighterState.WALK_FORWARD]: {
@@ -91,18 +95,39 @@ export class Fighter {
             validFrom: [FighterState.CROUCH],
             },
             [FighterState.LIGHT_PUNCH]: {
+                attackType: FighterAttackType.PUNCH,
                 init: this.handleStandardLightAttackInit.bind(this),
                 update: this.handleStandardLightPunchState.bind(this),
                 validFrom: [FighterState.IDLE, FighterState.WALK_FORWARD, FighterState.WALK_BACKWARD],
             },
             [FighterState.MEDIUM_PUNCH]: {
+                attackType: FighterAttackType.PUNCH,
                 init: this.handleStandardMediumAttackInit.bind(this),
                 update: this.handleStandardMediumPunchState.bind(this),
                 validFrom: [FighterState.IDLE, FighterState.WALK_FORWARD, FighterState.WALK_BACKWARD],
             },
             [FighterState.HEAVY_PUNCH]: {
+                attackType: FighterAttackType.PUNCH,
                 init: this.handleStandardHeavyAttackInit.bind(this),
                 update: this.handleStandardMediumPunchState.bind(this),
+                validFrom: [FighterState.IDLE, FighterState.WALK_FORWARD, FighterState.WALK_BACKWARD],
+            },
+            [FighterState.LIGHT_KICK]: {
+                attackType: FighterAttackType.KICK,
+                init: this.handleStandardLightAttackInit.bind(this),
+                update: this.handleStandardLightKickState.bind(this),
+                validFrom: [FighterState.IDLE, FighterState.WALK_FORWARD, FighterState.WALK_BACKWARD],
+            },
+            [FighterState.MEDIUM_KICK]: {
+                attackType: FighterAttackType.KICK,
+                init: this.handleStandardMediumAttackInit.bind(this),
+                update: this.handleStandardMediumKickState.bind(this),
+                validFrom: [FighterState.IDLE, FighterState.WALK_FORWARD, FighterState.WALK_BACKWARD],
+            },
+            [FighterState.HEAVY_KICK]: {
+                attackType: FighterAttackType.KICK,
+                init: this.handleStandardHeavyAttackInit.bind(this),
+                update: this.handleStandardMediumKickState.bind(this),
                 validFrom: [FighterState.IDLE, FighterState.WALK_FORWARD, FighterState.WALK_BACKWARD],
             },
         };
@@ -111,32 +136,43 @@ export class Fighter {
     }
 
     hasCollidedWithOpponent = () => rectsOverlap(
-        this.position.x + this.pushBox.x, this.position.y + this.pushBox.y,
-        this.pushBox.width, this.pushBox.height,
-        this.opponent.position.x + this.opponent.pushBox.x,
-        this.opponent.position.y + this.opponent.pushBox.y,
-        this.opponent.pushBox.width, this.opponent.pushBox.height, 
+        this.position.x + this.boxes.push.x, this.position.y + this.boxes.push.y,
+        this.boxes.push.width, this.boxes.push.height,
+        this.opponent.position.x + this.opponent.boxes.push.x,
+        this.opponent.position.y + this.opponent.boxes.push.y,
+        this.opponent.boxes.push.width, this.opponent.boxes.push.height, 
     );
 
     getDirection () { 
-        if (this.position.x + this.pushBox.x + this.pushBox.width >= this.opponent.position.x + this.pushBox.x) {
+        if (this.position.x + this.boxes.push.x + this.boxes.push.width >= this.opponent.position.x + this.opponent.boxes.push.x) {
             return FighterDirection.LEFT;
-        } else if (this.pushBox.x + this.pushBox.x <= this.opponent.position.x + this.opponent.pushBox.x + this.opponent.pushBox.width) {
+        } else if (this.position.x + this.boxes.push.x <= this.opponent.position.x + this.opponent.boxes.push.x + this.opponent.boxes.push.width) {
             return FighterDirection.RIGHT;
         }
         return this.direction;
     }
 
-    getPushBox(frameKey) {
-        const [, [x, y, width, height] = [0,0,0,0]] = this.frames.get(frameKey);
+    getBoxes(frameKey) {
+        const [, 
+            [pushX = 0, pushY = 0, pushWidth = 0, pushHeight = 0] = [],
+            [head = [0, 0, 0, 0], body = [0, 0, 0, 0], feet = [0, 0, 0, 0]] = [],
+            [hitX = 0, hitY = 0, hitWidth = 0, hitHeight = 0] = [],
+        ] = this.frames.get(frameKey);
 
-        return{ x, y, width, height };
+        return {
+            push: { x: pushX, y: pushY, width: pushWidth, height: pushHeight },
+            hurt: [head, body, feet],
+            hit: { x: hitX, y: hitY, width: hitWidth, height: hitHeight },
+        };
     }
 
     changeState(newState) { 
         console.log ("Coming2", newState)
         if (newState == this.currentState
-            || !this.states[newState].validFrom.includes(this.currentState)) return;
+            || !this.states[newState].validFrom.includes(this.currentState)) {
+                console.warn(`Illegal transition from "${this.currentState}" to "${newState}"`);
+                return;
+            }
 
         this.currentState = newState;
         this.animationFrame = 0;
@@ -187,6 +223,15 @@ export class Fighter {
         if (control.isHeavyPunch(this.playerId)) {
             this.changeState(FighterState.HEAVY_PUNCH);
         }
+        if (control.isLightKick(this.playerId)) {
+            this.changeState(FighterState.LIGHT_KICK);
+        }
+        if (control.isMediumKick(this.playerId)) {
+            this.changeState(FighterState.MEDIUM_KICK);
+        }
+        if (control.isHeavyKick(this.playerId)) {
+            this.changeState(FighterState.HEAVY_KICK);
+        }
 
         const newDirection = this.getDirection();
 
@@ -201,6 +246,25 @@ export class Fighter {
         if (control.isUp(this.playerId)) this.changeState(FighterState.JUMP_FORWARD);
         if (control.isDown(this.playerId)) this.changeState(FighterState.CROUCH_DOWN);
 
+        if (control.isLightPunch(this.playerId)) {
+            this.changeState(FighterState.LIGHT_PUNCH);
+        }
+        if (control.isMediumPunch(this.playerId)) {
+            this.changeState(FighterState.MEDIUM_PUNCH);
+        }
+        if (control.isHeavyPunch(this.playerId)) {
+            this.changeState(FighterState.HEAVY_PUNCH);
+        }
+        if (control.isLightKick(this.playerId)) {
+            this.changeState(FighterState.LIGHT_KICK);
+        }
+        if (control.isMediumKick(this.playerId)) {
+            this.changeState(FighterState.MEDIUM_KICK);
+        }
+        if (control.isHeavyKick(this.playerId)) {
+            this.changeState(FighterState.HEAVY_KICK);
+        }
+
         this.direction = this.getDirection();
     }
 
@@ -208,6 +272,25 @@ export class Fighter {
         if (!control.isBackward(this.playerId, this.direction)) this.changeState(FighterState.IDLE);
         if (control.isUp(this.playerId)) this.changeState(FighterState.JUMP_BACKWARD);
         if (control.isDown(this.playerId)) this.changeState(FighterState.CROUCH_DOWN);
+
+        if (control.isLightPunch(this.playerId)) {
+            this.changeState(FighterState.LIGHT_PUNCH);
+        }
+        if (control.isMediumPunch(this.playerId)) {
+            this.changeState(FighterState.MEDIUM_PUNCH);
+        }
+        if (control.isHeavyPunch(this.playerId)) {
+            this.changeState(FighterState.HEAVY_PUNCH);
+        }
+        if (control.isLightKick(this.playerId)) {
+            this.changeState(FighterState.LIGHT_KICK);
+        }
+        if (control.isMediumKick(this.playerId)) {
+            this.changeState(FighterState.MEDIUM_KICK);
+        }
+        if (control.isHeavyKick(this.playerId)) {
+            this.changeState(FighterState.HEAVY_KICK);
+        }
 
         this.direction = this.getDirection();
     }
@@ -272,21 +355,32 @@ export class Fighter {
         if (this.animations[this.currentState][this.animationFrame][1] != FrameDelay.TRANSITION) return;
         this.changeState(FighterState.IDLE);
     }
+    handleStandardLightKickState () {
+        if (this.animationFrame < 2) return;
+        if (control.isLightKick(this.playerId)) this.animationFrame = 0;
+        if(this.animations[this.currentState][this.animationFrame][1] != FrameDelay.TRANSITION) return;
+        this.changeState(FighterState.IDLE);
+    }
+
+    handleStandardMediumKickState () {
+        if (this.animations[this.currentState][this.animationFrame][1] != FrameDelay.TRANSITION) return;
+        this.changeState(FighterState.IDLE);
+    }
 
     updateStageConstraints(time, context, camera) {
-        if(this.position.x > camera.position.x + context.canvas.width - this.pushBox.width) {
-            this.position.x = camera.position.x + context.canvas.width - this.pushBox.width;
+        if(this.position.x > camera.position.x + context.canvas.width - this.boxes.push.width) {
+            this.position.x = camera.position.x + context.canvas.width - this.boxes.push.width;
         }
 
-        if(this.position.x < camera.position.x + this.pushBox.width) {           
-            this.position.x = camera.position.x + this.pushBox.width;
+        if(this.position.x < camera.position.x + this.boxes.push.width) {           
+            this.position.x = camera.position.x + this.boxes.push.width;
         }
 
         if (this.hasCollidedWithOpponent()) {
             if (this.position.x <= this.opponent.position.x) {
                 this.position.x = Math.max(
-                    (this.opponent.position.x + this.opponent.pushBox.x) - (this.pushBox.x + this.pushBox.width),
-                    camera.position.x + this.pushBox.width,
+                    (this.opponent.position.x + this.opponent.boxes.push.x) - (this.boxes.push.x + this.boxes.push.width),
+                    camera.position.x + this.boxes.push.width,
                 );
 
                 if ([
@@ -299,9 +393,9 @@ export class Fighter {
 
             if (this.position.x >= this.opponent.position.x) {
                 this.position.x = Math.min(
-                    (this.opponent.position.x + this.opponent.pushBox.x + this.opponent.pushBox.width) 
-                    + (this.pushBox.width + this.pushBox.x),
-                    camera.position.x + context.canvas.width - this.pushBox.width,
+                    (this.opponent.position.x + this.opponent.boxes.push.x + this.opponent.boxes.push.width) 
+                    + (this.boxes.push.width + this.boxes.push.x),
+                    camera.position.x + context.canvas.width - this.boxes.push.width,
                 );
 
             if ([
@@ -316,18 +410,37 @@ export class Fighter {
     
     updateAnimation(time) {
         const animation = this.animations[this.currentState];
-        const [frameKey, frameDelay] = animation[this.animationFrame];
+        const [, frameDelay] = animation[this.animationFrame];
    
-        if(time.previous > this.animationTimer + frameDelay) {
+        if(time.previous <= this.animationTimer + frameDelay) return;
             this.animationTimer = time.previous;
             
-            if (frameDelay > FrameDelay.FREEZE) {
-                this.animationFrame ++;
-                this.pushBox = this.getPushBox(frameKey);
-            }
-            if (this.animationFrame >= animation.length) {
-                this.animationFrame = 0;
-            }
+        if (frameDelay <= FrameDelay.FREEZE) return;
+
+        this.animationFrame ++;   
+        if (this.animationFrame >= animation.length) this.animationFrame = 0;
+
+        this.boxes = this.getBoxes(animation[this.animationFrame][0]);
+    }
+
+    updateAttackBoxCollided(time) {
+        if (!this.states[this.currentState].attackType) return;
+
+        const actualHitBox = getActualBoxDimensions(this.position, this.direction, this.boxes.hit);
+        for (const hurt of this.opponent.boxes.hurt) {
+            const [x, y, width, height] = hurt;
+            const actualOpponentHurtBox = getActualBoxDimensions(
+                this.opponent.position,
+                this.opponent.direction,
+                { x, y, width, height },
+            );
+
+            if(!boxOverlap(actualHitBox, actualOpponentHurtBox)) return;
+
+            const hurtIndex = this.opponent.boxes.hurt.indexOf(hurt);
+            const hurtName = ['head', 'body', 'feet'];
+
+            console.log("Attack",`${this.name} has hit ${this.opponent.name}'s ${hurtName[hurtIndex]}`);
         }
     }
 
@@ -338,31 +451,48 @@ export class Fighter {
         this.states[this.currentState].update(time, context);
         this.updateAnimation(time);
         this.updateStageConstraints(time, context, camera);
+        this.updateAttackBoxCollided(time);
+    }
+
+    drawDebugBox(context, camera, dimensions, baseColor) {
+        if (!Array.isArray(dimensions)) return;
+
+        const [x = 0, y = 0, width = 0, height = 0] = dimensions;
+
+        context.beginPath();
+        context.strokeStyle = baseColor + 'AA';
+        context.fillStyle = baseColor + '44';
+        context.fillRect(
+            Math.floor(this.position.x + (x * this.direction) - camera.position.x) + 0.5,
+            Math.floor(this.position.y + y - camera.position.y) + 0.5,
+            width * this.direction,
+            height,
+        );
+        context.rect(
+            Math.floor(this.position.x + (x * this.direction) - camera.position.x) + 0.5,
+            Math.floor(this.position.y + y - camera.position.y) + 0.5,
+            width * this.direction,
+            height,
+        );
+        context.stroke();
     }
 
     drawDebug(context, camera) {
         const [frameKey] = this.animations[this.currentState][this.animationFrame];
-        const pushBox = this.getPushBox(frameKey);
+        const boxes = this.getBoxes(frameKey);
 
         context.lineWidth = 1;
 
         // Push Box
-        context.beginPath();
-        context.strokeStyle = '#55FF55';
-        context.fillStyle = '#55FF5555';
-        context.fillRect(
-            Math.floor(this.position.x + (pushBox.x * this.direction) - camera.position.x) + 0.5,
-            Math.floor(this.position.y + pushBox.y - camera.position.y) + 0.5,
-            pushBox.width * this.direction,
-            pushBox.height,
-        );
-        context.rect(
-            Math.floor(this.position.x + (pushBox.x * this.direction) - camera.position.x) + 0.5,
-            Math.floor(this.position.y + pushBox.y - camera.position.y) + 0.5,
-            pushBox.width * this.direction,
-            pushBox.height,
-        );
-        context.stroke();
+        this.drawDebugBox(context, camera, Object.values(boxes.push), '#55FF55');
+
+        //Hurt Boxes
+        for (const hurtBox of boxes.hurt) {
+            this.drawDebugBox(context, camera, hurtBox, '#7777FF')
+        }
+
+        // Hit Box
+        this.drawDebugBox(context, camera, Object.values(boxes.hit), '#FF0000');
 
         //Origin
         context.beginPath();
